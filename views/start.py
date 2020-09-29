@@ -20,7 +20,7 @@ def init(dispatcher: Dispatcher):
 
 def start(update: Update, context: CallbackContext) -> None:
     """Process a /start command."""
-    context.bot.send_photo(update.effective_message.chat_id, open('assets/mai.png', 'rb'),
+    context.bot.send_photo(update.effective_chat.id, open('assets/mai.png', 'rb'),
                            caption=f"Привет, <code>{update.effective_user.first_name}</code>. Я могу показать тебе "
                                    f"расписание, а также сообщить тебе вечером, какие завтра будут пары. "
                                    f"🇷🇺🇷🇺🇷🇺. Вызовите команду /menu для отображения меню.",

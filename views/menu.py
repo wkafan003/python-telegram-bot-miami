@@ -44,7 +44,7 @@ def menu(update: Update, context: CallbackContext) -> None:
         InlineKeyboardButton(f"Уведомлять о предметах?  |{'Да' if is_notify else 'Нет'}", callback_data=CHANGE_NOTIFY),
     ]
     reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=1))
-    context.bot.send_message(update.effective_message.chat_id, 'Меню', reply_markup=reply_markup)
+    context.bot.send_message(update.effective_chat.id, 'Меню', reply_markup=reply_markup)
 
 
 def callback(update: Update, context: CallbackContext):
@@ -69,6 +69,8 @@ def callback(update: Update, context: CallbackContext):
         ]
         reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=1))
         query.edit_message_text('Меню', reply_markup=reply_markup)
+    elif query.data == DOWNLOAD_SCHEDULE:
+        query.edit_message_text('Пока не реализовано(', reply_markup=None)
     elif query.data == SHOW_SCHEDULE:
         button_list = [
             InlineKeyboardButton("1. Понедельник", callback_data=MONDAY),
@@ -90,6 +92,7 @@ def callback(update: Update, context: CallbackContext):
         schedule: pd.DataFrame = context.bot_data['schedule']
         day_time = pd.Timestamp.now()
         day_time -= pd.Timedelta((day_time.dayofweek - day), unit='D')
+        # TODO
         schedule = schedule.loc[(schedule['start'].dt.dayofweek == day) & (
                 np.mod((day_time.date() - schedule['start'].dt.date).dt.days, schedule['period']) == 0), :]
         message = f'Занятия на {DAYS[query.data]}'
