@@ -1,8 +1,8 @@
 # coding: utf-8
+import logging
 import signal
 import sys
 import os
-
 from telegram.ext import Updater, Dispatcher, PicklePersistence
 from importlib import import_module
 
@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 
 
-def load_handlers(dispatcher: Dispatcher):
+def load_views(dispatcher: Dispatcher):
     """Load handlers from files in a 'views' directory."""
     base_path = os.path.join(os.path.dirname(__file__), 'views')
     files = os.listdir(base_path)
@@ -33,22 +33,28 @@ def graceful_exit(*args, **kwargs):
 
 
 if __name__ == "__main__":
+    # set logger
     global updater
-    logger.init_logger(f'logs/{settings.NAME}.log')
+    logger.init_logger(f'logs/{settings.NAME}.log',logging.WARNING)
+    # Make the bot persistence
     persistence = PicklePersistence(filename='assets/data.pickle')
+
     updater = Updater(token=settings.TOKEN, persistence=persistence, use_context=True)
     # Set of notifiable users
     if updater.dispatcher.bot_data.get('notify_set', None) is None:
         updater.dispatcher.bot_data['notify_set'] = set()
-
+    #
     schedule = pd.read_csv('assets/schedule.csv').astype(
         {'name': 'string', 'teacher': 'string', 'start': np.datetime64, 'end': np.datetime64, 'period': np.uint8})
     updater.dispatcher.bot_data['schedule'] = schedule
-    load_handlers(updater.dispatcher)
+    # Load views from /views/*
+    load_views(updater.dispatcher)
 
+    # Set webhook
     if settings.WEBHOOK:
         signal.signal(signal.SIGINT, graceful_exit)
         updater.start_webhook(**settings.WEBHOOK_OPTIONS)
         updater.bot.set_webhook(url=settings.WEBHOOK_URL)
     else:
         updater.start_polling()
+
