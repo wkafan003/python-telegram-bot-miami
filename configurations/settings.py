@@ -9,3 +9,4 @@ WEBHOOK_OPTIONS = {
                         # making fake updates to your views
 }
 WEBHOOK_URL = f'https://example.com/{WEBHOOK_OPTIONS["url_path"]}'
+OPW_KEY = 'OPW_TOKEN'
