@@ -1,16 +1,17 @@
 # encoding: utf-8
 
-import configurations.settings as settings
 
-from typing import Dict
 import requests
 import pandas as pd
 import numpy as np
+import configurations.settings as settings
+from typing import Dict
 from utils.logger import get_logger
 from utils.helpers import *
 from telegram.ext import Dispatcher, CallbackContext
 from telegram import Update, InlineKeyboardMarkup, Location
 from telegram.ext import CommandHandler, CallbackQueryHandler
+from connectors.db import log_to_db
 
 # Init logger
 logger = get_logger(__name__)
@@ -38,6 +39,7 @@ def init(dispatcher: Dispatcher):
     dispatcher.add_handler(CallbackQueryHandler(callback))
 
 
+@log_to_db
 def menu(update: Update, context: CallbackContext) -> None:
     is_notify = update.effective_user.id in context.bot_data['notify_set']
     button_list = [
@@ -49,7 +51,7 @@ def menu(update: Update, context: CallbackContext) -> None:
     reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=1))
     context.bot.send_message(update.effective_chat.id, 'Меню', reply_markup=reply_markup)
 
-
+@log_to_db
 def callback(update: Update, context: CallbackContext):
     query = update.callback_query
 
@@ -69,6 +71,7 @@ def callback(update: Update, context: CallbackContext):
             InlineKeyboardButton("Скачать расписание (csv файл)", callback_data=DOWNLOAD_SCHEDULE),
             InlineKeyboardButton(f"Уведомлять о предметах?  |{'Да' if is_notify else 'Нет'}",
                                  callback_data=CHANGE_NOTIFY),
+            InlineKeyboardButton(f"Узнать погоду", callback_data=GET_WEATHER),
         ]
         reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=1))
         query.edit_message_text('Меню', reply_markup=reply_markup)
@@ -119,7 +122,13 @@ def callback(update: Update, context: CallbackContext):
                 buf_message = f'Текущая погода \n\n' \
                               f'Температура {weather["main"]["temp"]} °C\n' \
                               f'Ветер {weather["wind"]["speed"]} м/с\n' \
-                              f'Облачность {weather["clouds"]["all"]} %'
+                              f'Облачность {weather["clouds"]["all"]}% \n'
+                rain = weather.get('rain', None)
+                if rain is not None:
+                    rain = rain.get('1h', None)
+                    if rain:
+                        weather += f'Дождь {rain} мм \n'
+
                 message += buf_message
             except Exception as e:
                 logger.warning(str(e))

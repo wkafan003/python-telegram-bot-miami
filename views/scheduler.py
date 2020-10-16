@@ -16,7 +16,7 @@ def job():
 
 
 def init(dispatcher: Dispatcher):
-    schedule.every(2).seconds.do(job)
+    # schedule.every(2).seconds.do(job)
     t = threading.Thread(target=schedule_check, daemon=True).start()
 
 

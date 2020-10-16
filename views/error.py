@@ -4,7 +4,7 @@
 import sys
 import traceback
 
-from telegram.ext import Dispatcher, CallbackContext
+from telegram.ext import Dispatcher, CallbackContext, MessageHandler, Filters
 from telegram import Update, ParseMode
 # Helper methods import
 from utils.logger import get_logger
@@ -15,7 +15,12 @@ logger = get_logger(__name__)
 
 def init(dispatcher: Dispatcher):
     """Provide handlers initialization."""
+    dispatcher.add_handler(MessageHandler(Filters.text, undefined))
     dispatcher.add_error_handler(error)
+
+
+def undefined(update: Update, context: CallbackContext) -> None:
+    context.bot.send_message(update.effective_chat.id, 'Я не понимаю этой команды :(')
 
 
 def error(update: Update, context: CallbackContext) -> None:

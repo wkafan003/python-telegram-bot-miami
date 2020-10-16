@@ -3,13 +3,13 @@ import logging
 import signal
 import sys
 import os
-from telegram.ext import Updater, Dispatcher, PicklePersistence
-from importlib import import_module
-
 import utils.logger as logger
 import configurations.settings as settings
 import pandas as pd
 import numpy as np
+from telegram.ext import Updater, Dispatcher, PicklePersistence
+from importlib import import_module
+from connectors.create_db import create_db
 
 
 def load_views(dispatcher: Dispatcher):
@@ -35,7 +35,7 @@ def graceful_exit(*args, **kwargs):
 if __name__ == "__main__":
     # set logger
     global updater
-    logger.init_logger(f'logs/{settings.NAME}.log',logging.WARNING)
+    logger.init_logger(f'logs/{settings.NAME}.log', logging.WARNING)
     # Make the bot persistence
     persistence = PicklePersistence(filename='assets/data.pickle')
 
@@ -49,7 +49,8 @@ if __name__ == "__main__":
     updater.dispatcher.bot_data['schedule'] = schedule
     # Load views from /views/*
     load_views(updater.dispatcher)
-
+    # Create db
+    create_db('connectors/ddl.sql')
     # Set webhook
     if settings.WEBHOOK:
         signal.signal(signal.SIGINT, graceful_exit)
@@ -57,4 +58,3 @@ if __name__ == "__main__":
         updater.bot.set_webhook(url=settings.WEBHOOK_URL)
     else:
         updater.start_polling()
-
