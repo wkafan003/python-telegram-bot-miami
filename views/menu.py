@@ -51,6 +51,7 @@ def menu(update: Update, context: CallbackContext) -> None:
     reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=1))
     context.bot.send_message(update.effective_chat.id, 'Меню', reply_markup=reply_markup)
 
+
 @log_to_db
 def callback(update: Update, context: CallbackContext):
     query = update.callback_query
@@ -133,6 +134,8 @@ def callback(update: Update, context: CallbackContext):
             except Exception as e:
                 logger.warning(str(e))
                 message += 'Не удалось получить данные о погоде!'
+        else:
+            message += 'Вы не разрешили доступ к местоположению!'
         query.edit_message_text(message, reply_markup=None)
 
 
